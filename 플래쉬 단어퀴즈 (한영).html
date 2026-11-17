@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>영어-한국어 맞춤형 단어 퀴즈 생성기</title>
+    <style>
+        :root {
+            --primary: #3B82F6;
+            --primary-hover: #2563EB;
+            --success: #2ECC71;
+            --error: #E74C3C;
+            --bg: #F4F7F9;
+            --card-bg: #FFFFFF;
+            --text: #2C3E50;
+        }
+
+        body {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .container {
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+            width: 100%;
+            max-width: 580px;
+            padding: 30px;
+            box-sizing: border-box;
+            position: relative;
+        }
+
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .home-btn {
+            background-color: #E2E8F0;
+            color: #475569;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 14px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .home-btn:hover {
+            background-color: #CBD5E1;
+            color: #1E293B;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            margin-top: 0;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+
+        .subtitle {
+            font-size: 0.9rem;
+            color: #7F8C8D;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .option-group {
+            margin-bottom: 15px;
+        }
+
+        .option-label {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        select, input[type="number"] {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #E2E8F0;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            color: var(--text);
+            background-color: #F8FAFC;
+            box-sizing: border-box;
+            outline: none;
+        }
+
+        select:focus, input[type="number"]:focus {
+            border-color: var(--primary);
+        }
+
+        .mix-panel {
+            display: none;
+            background-color: #F1F5F9;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 1px dashed #CBD5E1;
+        }
+
+        .mix-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .mix-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .mix-item label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: #475569;
+        }
+
+        .mix-item input {
+            padding: 8px 10px;
+            font-size: 0.9rem;
+        }
+
+        textarea {
+            width: 100%;
+            height: 160px;
+            padding: 15px;
+            border: 2px solid #E2E8F0;
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            box-sizing: border-box;
+            resize: vertical;
+            margin-bottom: 15px;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 14px 28px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: background-color 0.2s ease;
+        }
+
+        .btn:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .quiz-section {
+            display: none;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 8px;
+            background-color: #E0E6ED;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background-color: var(--primary);
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            font-size: 0.85rem;
+            color: #7F8C8D;
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+
+        .card {
+            background-color: #F8FAFC;
+            border: 2px solid #E2E8F0;
+            border-radius: 12px;
+            padding: 25px 15px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .mode-badge {
+            display: inline-block;
+            background-color: #E2E8F0;
+            color: #475569;
+            font-size: 0.8rem;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 20px;
+            margin-bottom: 10px;
+        }
+
+        .word-question {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #1E293B;
+        }
+
+        .options-grid {
+            display: grid;
+            gap: 10px;
+        }
+
+        .option-btn {
+            background-color: #FFFFFF;
+            border: 2px solid #E2E8F0;
+            border-radius: 10px;
+            padding: 14px 16px;
+            font-size: 1.05rem;
+            font-weight: 500;
+            color: var(--text);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: left;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .option-btn.correct {
+            background-color: #D1FAE5 !important;
+            border-color: var(--success) !important;
+            color: #065F46 !important;
+        }
+
+        .option-btn.incorrect {
+            background-color: #FEE2E2 !important;
+            border-color: var(--error) !important;
+            color: #991B1B !important;
+        }
+
+        .next-btn {
+            margin-top: 20px;
+            display: none;
+        }
+
+        .recap-section, .score-section {
+            display: none;
+        }
+
+        .recap-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .recap-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 320px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            padding-right: 5px;
+        }
+
+        .recap-item {
+            padding: 12px 15px;
+            border-radius: 10px;
+            border-left: 5px solid;
+            font-size: 0.95rem;
+            background-color: #F8FAFC;
+        }
+
+        .recap-item.correct {
+            border-left-color: var(--success);
+            background-color: #F0FDF4;
+        }
+
+        .recap-item.incorrect {
+            border-left-color: var(--error);
+            background-color: #FEF2F2;
+        }
+
+        .recap-header-line {
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        .recap-details {
+            font-size: 0.85rem;
+            color: #64748B;
+        }
+
+        .score-number {
+            font-size: 3rem;
+            font-weight: bold;
+            color: var(--primary);
+            margin: 20px 0;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- 1. Configuration Screen -->
+    <div id="input-section">
+        <h1>영어-한국어 단어 퀴즈 생성기</h1>
+        <p class="subtitle">한 줄에 하나씩 [영어단어 - 한국어뜻] 형식으로 입력해 주세요.</p>
+        
+        <div class="option-group">
+            <label class="option-label" for="quiz-mode">🎯 퀴즈 유형 선택:</label>
+            <select id="quiz-mode" onchange="toggleMixPanel()">
+                <option value="en-kr">1. 🔤 영어 ➔ 🇰🇷 한국어 뜻</option>
+                <option value="kr-en">2. 🇰🇷 한국어 뜻 ➔ 🔤 영어</option>
+                <option value="mix">3. 🔀 믹스 모드 (Mix Mode)</option>
+            </select>
+        </div>
+
+        <div id="mix-panel" class="mix-panel">
+            <label class="option-label">⚙️ 믹스 모드 각 유형별 문항 수 설정:</label>
+            <div class="mix-grid">
+                <div class="mix-item">
+                    <label>1. 영어 ➔ 한국어</label>
+                    <input type="number" id="count-en-kr" value="3" min="0">
+                </div>
+                <div class="mix-item">
+                    <label>2. 한국어 ➔ 영어</label>
+                    <input type="number" id="count-kr-en" value="3" min="0">
+                </div>
+            </div>
+        </div>
+
+        <textarea id="word-input" placeholder="예시:
+welcome - 환영하다
+warm-up - 준비 운동
+gather - 모이다
+victory - 승리
+start - 시작하다
+run - 달리다
+jump - 뛰다"></textarea>
+
+        <button class="btn" onclick="generateQuiz()">⚡ 퀴즈 생성하기</button>
+    </div>
+
+    <!-- 2. Quiz Playing Screen -->
+    <div id="quiz-section" class="quiz-section">
+        <div class="top-bar">
+            <button class="home-btn" onclick="resetToInput()">🏠 홈으로</button>
+            <span id="score-text" style="font-weight: 600; color: var(--primary);">점수: 0</span>
+        </div>
+
+        <div class="progress-bar-container">
+            <div class="progress-bar" id="progress-bar"></div>
+        </div>
+        <div class="progress-text">
+            <span id="question-count">문제 1 / 10</span>
+            <span>7문제마다 리캡 제공</span>
+        </div>
+
+        <div class="card">
+            <div class="mode-badge" id="display-mode-badge">모드</div>
+            <div class="word-question" id="display-question">질문</div>
+        </div>
+
+        <div class="options-grid" id="options-container"></div>
+
+        <button class="btn next-btn" id="next-btn" onclick="nextQuestion()">다음 문제 ➔</button>
+    </div>
+
+    <!-- 3. Recap Screen -->
+    <div id="recap-section" class="recap-section">
+        <div class="top-bar">
+            <button class="home-btn" onclick="resetToInput()">🏠 홈으로</button>
+        </div>
+        <div class="recap-title" id="recap-title">📊 최근 7문제 복습</div>
+        <div class="recap-list" id="recap-list"></div>
+        <button class="btn" onclick="continueFromRecap()">다음 문제 이어풀기 ➔</button>
+    </div>
+
+    <!-- 4. Final Score Screen -->
+    <div id="score-section" class="score-section">
+        <div class="top-bar">
+            <button class="home-btn" onclick="resetToInput()">🏠 홈으로</button>
+        </div>
+        <h1 style="text-align: center;">🎉 퀴즈 완료!</h1>
+        <p style="text-align: center;">수고하셨습니다! 당신의 점수는:</p>
+        <div class="score-number" id="final-score">0 / 0</div>
+        
+        <div class="recap-title">📊 전체 결과 복습</div>
+        <div class="recap-list" id="final-recap-list"></div>
+
+        <button class="btn" onclick="resetToInput()">🔄 새로운 단어/모드로 다시 만들기</button>
+    </div>
+</div>
+
+<script>
+    let vocabulary = [];
+    let currentQuestions = [];
+    let currentIndex = 0;
+    let score = 0;
+    let history = [];
+
+    const MODE_NAMES = {
+        'en-kr': '🔤 영어 ➔ 🇰🇷 한국어 뜻',
+        'kr-en': '🇰🇷 한국어 뜻 ➔ 🔤 영어'
+    };
+
+    function toggleMixPanel() {
+        const mode = document.getElementById('quiz-mode').value;
+        document.getElementById('mix-panel').style.display = (mode === 'mix') ? 'block' : 'none';
+    }
+
+    function shuffle(array) {
+        return [...array].sort(() => Math.random() - 0.5);
+    }
+
+    function generateQuiz() {
+        const inputText = document.getElementById('word-input').value.trim();
+        const selectedMode = document.getElementById('quiz-mode').value;
+
+        if (!inputText) {
+            alert('단어를 입력해 주세요!');
+            return;
+        }
+
+        const lines = inputText.split('\n');
+        vocabulary = [];
+
+        lines.forEach(line => {
+            if (!line.trim()) return;
+            let parts = line.split('-').map(p => p.trim());
+            if (parts.length < 2) parts = line.trim().split(/\s+/);
+
+            if (parts.length >= 2) {
+                const english = parts[0];
+                const meaning = parts.slice(1).join(' - '); 
+                vocabulary.push({ english, meaning });
+            }
+        });
+
+        if (vocabulary.length < 2) {
+            alert('최소 2개 이상의 단어를 올바른 형식(영어 - 한국어)으로 입력해 주세요.');
+            return;
+        }
+
+        currentQuestions = [];
+        history = [];
+
+        if (selectedMode === 'mix') {
+            const modes = ['en-kr', 'kr-en'];
+            modes.forEach(modeKey => {
+                const count = parseInt(document.getElementById('count-' + modeKey).value) || 0;
+                for (let i = 0; i < count; i++) {
+                    const randomWord = vocabulary[Math.floor(Math.random() * vocabulary.length)];
+                    currentQuestions.push({ word: randomWord, mode: modeKey });
+                }
+            });
+            currentQuestions = shuffle(currentQuestions);
+        } else {
+            vocabulary.forEach(word => {
+                currentQuestions.push({ word: word, mode: selectedMode });
+            });
+            currentQuestions = shuffle(currentQuestions);
+        }
+
+        if (currentQuestions.length === 0) {
+            alert('문항 수가 최소 1개 이상이어야 합니다!');
+            return;
+        }
+
+        document.getElementById('input-section').style.display = 'none';
+        document.getElementById('quiz-section').style.display = 'block';
+        document.getElementById('recap-section').style.display = 'none';
+        document.getElementById('score-section').style.display = 'none';
+        
+        currentIndex = 0;
+        score = 0;
+        showQuestion();
+    }
+
+    function showQuestion() {
+        const qData = currentQuestions[currentIndex];
+        const item = qData.word;
+        const mode = qData.mode;
+
+        document.getElementById('display-mode-badge').innerText = MODE_NAMES[mode];
+
+        let questionText = '';
+        let correctAnswer = '';
+        let wrongPool = [];
+
+        switch (mode) {
+            case 'en-kr':
+                questionText = item.english;
+                correctAnswer = item.meaning;
+                wrongPool = vocabulary.map(v => v.meaning);
+                break;
+            case 'kr-en':
+                questionText = item.meaning;
+                correctAnswer = item.english;
+                wrongPool = vocabulary.map(v => v.english);
+                break;
+        }
+
+        document.getElementById('display-question').innerText = questionText;
+        document.getElementById('question-count').innerText = '문제 ' + (currentIndex + 1) + ' / ' + currentQuestions.length;
+        document.getElementById('score-text').innerText = '점수: ' + score;
+        document.getElementById('progress-bar').style.width = ((currentIndex / currentQuestions.length) * 100) + '%';
+        document.getElementById('next-btn').style.display = 'none';
+
+        const wrongOptions = wrongPool.filter(opt => opt !== correctAnswer);
+        const shuffledWrong = shuffle([...new Set(wrongOptions)]).slice(0, 3);
+        const allOptions = shuffle([correctAnswer, ...shuffledWrong]);
+
+        const container = document.getElementById('options-container');
+        container.innerHTML = '';
+
+        allOptions.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.innerText = opt;
+            btn.onclick = () => selectOption(btn, opt, correctAnswer, questionText, mode);
+            container.appendChild(btn);
+        });
+    }
+
+    function selectOption(selectedBtn, selectedOpt, correctAnswer, questionText, mode) {
+        const buttons = document.querySelectorAll('.option-btn');
+        buttons.forEach(btn => btn.disabled = true);
+
+        const isCorrect = (selectedOpt === correctAnswer);
+
+        if (isCorrect) {
+            selectedBtn.classList.add('correct');
+            score++;
+            document.getElementById('score-text').innerText = '점수: ' + score;
+        } else {
+            selectedBtn.classList.add('incorrect');
+            buttons.forEach(btn => {
+                if (btn.innerText === correctAnswer) {
+                    btn.classList.add('correct');
+                }
+            });
+        }
+
+        history.push({
+            qNum: currentIndex + 1,
+            question: questionText,
+            selected: selectedOpt,
+            correct: correctAnswer,
+            isCorrect: isCorrect,
+            modeName: MODE_NAMES[mode]
+        });
+
+        document.getElementById('next-btn').style.display = 'block';
+    }
+
+    function nextQuestion() {
+        currentIndex++;
+
+        if (currentIndex % 7 === 0 && currentIndex < currentQuestions.length) {
+            showRecap();
+        } else if (currentIndex < currentQuestions.length) {
+            showQuestion();
+        } else {
+            showScore();
+        }
+    }
+
+    function showRecap() {
+        document.getElementById('quiz-section').style.display = 'none';
+        document.getElementById('recap-section').style.display = 'block';
+
+        const startIndex = currentIndex - 7;
+        const recentHistory = history.slice(startIndex, currentIndex);
+
+        document.getElementById('recap-title').innerText = '📊 최근 7문제 복습 (문제 ' + (startIndex + 1) + ' ~ ' + currentIndex + ')';
+        
+        renderRecapList('recap-list', recentHistory);
+    }
+
+    function continueFromRecap() {
+        document.getElementById('recap-section').style.display = 'none';
+        document.getElementById('quiz-section').style.display = 'block';
+        showQuestion();
+    }
+
+    function renderRecapList(containerId, historyItems) {
+        const container = document.getElementById(containerId);
+        container.innerHTML = '';
+
+        historyItems.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'recap-item ' + (item.isCorrect ? 'correct' : 'incorrect');
+            
+            const statusIcon = item.isCorrect ? '✅ 정답' : '❌ 오답';
+            
+            let detailsHtml = '유형: ' + item.modeName + '<br>';
+            if (item.isCorrect) {
+                detailsHtml += '답: <strong>' + item.correct + '</strong>';
+            } else {
+                detailsHtml += '선택: <span style="color:var(--error);">' + item.selected + '</span> | 정답: <strong>' + item.correct + '</strong>';
+            }
+
+            div.innerHTML = 
+                '<div class="recap-header-line">' +
+                    '<span>Q' + item.qNum + '. ' + item.question + '</span>' +
+                    '<span>' + statusIcon + '</span>' +
+                '</div>' +
+                '<div class="recap-details">' +
+                    detailsHtml +
+                '</div>';
+                
+            container.appendChild(div);
+        });
+    }
+
+    function showScore() {
+        document.getElementById('progress-bar').style.width = '100%';
+        document.getElementById('quiz-section').style.display = 'none';
+        document.getElementById('recap-section').style.display = 'none';
+        document.getElementById('score-section').style.display = 'block';
+        document.getElementById('final-score').innerText = score + ' / ' + currentQuestions.length;
+
+        renderRecapList('final-recap-list', history);
+    }
+
+    function resetToInput() {
+        document.getElementById('quiz-section').style.display = 'none';
+        document.getElementById('recap-section').style.display = 'none';
+        document.getElementById('score-section').style.display = 'none';
+        document.getElementById('input-section').style.display = 'block';
+    }
+</script>
+</body>
+</html>
